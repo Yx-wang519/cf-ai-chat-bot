@@ -1,81 +1,55 @@
-import { routeAgentRequest, type Schedule } from "agents";
-
-import { getSchedulePrompt } from "agents/schedule";
+import { routeAgentRequest } from "agents";
 
 import { AIChatAgent } from "agents/ai-chat-agent";
 import {
-  generateId,
   streamText,
   type StreamTextOnFinishCallback,
   stepCountIs,
   createUIMessageStream,
   convertToModelMessages,
-  createUIMessageStreamResponse,
-  type ToolSet
+  createUIMessageStreamResponse
 } from "ai";
-import { openai } from "@ai-sdk/openai";
-import { processToolCalls, cleanupMessages } from "./utils";
-import { tools, executions } from "./tools";
-// import { env } from "cloudflare:workers";
 
-const model = openai("gpt-4o-2024-11-20");
-// Cloudflare AI Gateway
-// const openai = createOpenAI({
-//   apiKey: env.OPENAI_API_KEY,
-//   baseURL: env.GATEWAY_BASE_URL,
-// });
+import { createWorkersAI } from "workers-ai-provider";
+
+import { cleanupMessages } from "./utils";
 
 /**
- * Chat Agent implementation that handles real-time AI chat interactions
+ * Pure chat AI Agent using Cloudflare Workers AI (Llama 3.1 8B Instruct).
+ * No tools, no calendar – just a friendly chatbot.
  */
 export class Chat extends AIChatAgent<Env> {
-  /**
-   * Handles incoming chat messages and manages the response stream
-   */
   async onChatMessage(
-    onFinish: StreamTextOnFinishCallback<ToolSet>,
+    onFinish: StreamTextOnFinishCallback<{}>,
     _options?: { abortSignal?: AbortSignal }
   ) {
-    // const mcpConnection = await this.mcp.connect(
-    //   "https://path-to-mcp-server/sse"
-    // );
-
-    // Collect all tools, including MCP tools
-    const allTools = {
-      ...tools,
-      ...this.mcp.getAITools()
-    };
-
     const stream = createUIMessageStream({
       execute: async ({ writer }) => {
-        // Clean up incomplete tool calls to prevent API errors
+        // Workers AI provider using the Cloudflare AI binding
+        const workersai = createWorkersAI({ binding: this.env.AI });
+
+        // @ts-ignore - model id is a valid Workers AI model
+        const model = workersai("@cf/meta/llama-3.1-8b-instruct");
+
         const cleanedMessages = cleanupMessages(this.messages);
 
-        // Process any pending tool calls from previous messages
-        // This handles human-in-the-loop confirmations for tools
-        const processedMessages = await processToolCalls({
-          messages: cleanedMessages,
-          dataStream: writer,
-          tools: allTools,
-          executions
-        });
-
         const result = streamText({
-          system: `You are a helpful assistant that can do various tasks... 
+          system: `
+You are a friendly, helpful general-purpose AI assistant.
 
-${getSchedulePrompt({ date: new Date() })}
+You:
+- Answer questions clearly and concisely.
+- Help with reasoning, explanations, and writing.
+- Can chat casually and keep the conversation going.
+- Do NOT call any external tools or APIs.
+- Never output raw JSON as a final answer.
 
-If the user asks to schedule a task, use the schedule tool to schedule the task.
+Always respond in natural language only.
 `,
-
-          messages: convertToModelMessages(processedMessages),
+          messages: convertToModelMessages(cleanedMessages),
           model,
-          tools: allTools,
-          // Type boundary: streamText expects specific tool types, but base class uses ToolSet
-          // This is safe because our tools satisfy ToolSet interface (verified by 'satisfies' in tools.ts)
-          onFinish: onFinish as unknown as StreamTextOnFinishCallback<
-            typeof allTools
-          >,
+          // ❌ no tools
+          onFinish: onFinish as unknown as StreamTextOnFinishCallback<{}>,
           stopWhen: stepCountIs(10)
         });
 
@@ -84,24 +58,6 @@ If the user asks to schedule a task, use the schedule tool to schedule the task.
     });
 
     return createUIMessageStreamResponse({ stream });
-  }
-  async executeTask(description: string, _task: Schedule<string>) {
-    await this.saveMessages([
-      ...this.messages,
-      {
-        id: generateId(),
-        role: "user",
-        parts: [
-          {
-            type: "text",
-            text: `Running scheduled task: ${description}`
-          }
-        ],
-        metadata: {
-          createdAt: new Date()
-        }
-      }
-    ]);
   }
 }
 
@@ -112,19 +68,88 @@ export default {
   async fetch(request: Request, env: Env, _ctx: ExecutionContext) {
     const url = new URL(request.url);
 
-    if (url.pathname === "/check-open-ai-key") {
-      const hasOpenAIKey = !!process.env.OPENAI_API_KEY;
-      return Response.json({
-        success: hasOpenAIKey
+    // Simple HTML homepage at "/"
+    if (url.pathname === "/") {
+      const html = `
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>AI Chat Bot</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #fafafa;
+      padding: 2rem;
+      max-width: 720px;
+      margin: 0 auto;
+      line-height: 1.6;
+      color: #222;
+    }
+    h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    }
+    code {
+      background: #eee;
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+    pre {
+      background: #111;
+      color: #eee;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>🤖 AI Chat Bot</h1>
+  <div class="card">
+    <p>
+      This Cloudflare Worker powers a simple AI chat bot using
+      <strong>Cloudflare Workers AI (Llama 3.1 8B Instruct)</strong>.
+    </p>
+
+    <p>Capabilities:</p>
+    <ul>
+      <li>General conversation and Q&amp;A</li>
+      <li>Reasoning, explanations, and writing help</li>
+      <li>No tools, no external APIs – pure chat</li>
+    </ul>
+
+    <p><strong>How to use the full chat UI locally:</strong></p>
+    <pre><code>npm install
+npm run dev
+# then open http://localhost:5173/</code></pre>
+
+    <p style="color:#777;">Worker origin: <code>${url.origin}</code></p>
+  </div>
+</body>
+</html>
+      `.trim();
+
+      return new Response(html, {
+        headers: { "content-type": "text/html; charset=utf-8" }
       });
     }
-    if (!process.env.OPENAI_API_KEY) {
-      console.error(
-        "OPENAI_API_KEY is not set, don't forget to set it locally in .dev.vars, and use `wrangler secret bulk .dev.vars` to upload it to production"
-      );
+
+    // Health-check endpoint for the frontend
+    if (url.pathname === "/check-open-ai-key") {
+      return Response.json({
+        success: true,
+        message: "Using Cloudflare Workers AI. No OpenAI API key required. No tools are used."
+      });
     }
+
+    // Route the request to our agent or return 404 if not found
     return (
-      // Route the request to our agent or return 404 if not found
       (await routeAgentRequest(request, env)) ||
       new Response("Not found", { status: 404 })
     );
