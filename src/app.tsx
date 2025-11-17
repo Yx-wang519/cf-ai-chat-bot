@@ -201,7 +201,9 @@ export default function Chat() {
                   <div className="bg-[#F48120]/10 text-[#F48120] rounded-full p-3 inline-flex">
                     <Robot size={24} />
                   </div>
-                  <h3 className="font-semibold text-lg">Welcome to Workers AI Chat</h3>
+                  <h3 className="font-semibold text-lg">
+                    Welcome to Workers AI Chat
+                  </h3>
                   <p className="text-muted-foreground text-sm">
                     Start a conversation with your AI assistant. Try asking
                     about:
@@ -213,7 +215,9 @@ export default function Chat() {
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="text-[#F48120]">•</span>
-                      <span>Give me three tips for learning a foreign language.</span>
+                      <span>
+                        Give me three tips for learning a foreign language.
+                      </span>
                     </li>
                   </ul>
                 </div>

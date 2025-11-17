@@ -3,6 +3,7 @@
 A lightweight AI-powered chatbot built using Cloudflare Workers AI and deployed on Cloudflare Workers.
 
 This project is created for the Cloudflare Internship Optional Assignment, demonstrating:
+
 - LLM using Llama 3.x on Workers AI
 - Workflow / coordination using Cloudflare Workers
 - Chat-based user interaction
@@ -22,6 +23,7 @@ However, the LLM backend has been fully replaced from OpenAI → Llama on Worker
 - 🎨 Modern, responsive UI
 
 ## Try it
+
 This chat bot has been deployed to Cloudflare Workers, try it now! Click->
 [`Worker AI chat bot`](https://cf-ai-smart-calendar-bot.wangyx1113.workers.dev)
 ![Chatbot Screenshot](./Chat1.png)
@@ -41,7 +43,6 @@ cd cf-ai-chat-bot
 ```bash
 npm install
 ```
-
 
 3. Run locally:
 
@@ -70,7 +71,6 @@ npm run deploy
 1. [`agent-starter`](https://github.com/cloudflare/agents-starter)
 2. [`workers-ai-provider`](https://sdk.vercel.ai/providers/community-providers/cloudflare-workers-ai)
 3. [`Cloudflare Agents Documentation`](https://developers.cloudflare.com/agents/)
-
 
 ## License
 

@@ -28,7 +28,7 @@ export class Chat extends AIChatAgent<Env> {
         // Workers AI provider using the Cloudflare AI binding
         const workersai = createWorkersAI({ binding: this.env.AI });
 
-        // @ts-ignore - model id is a valid Workers AI model
+        // @ts-expect-error - model id is a valid Workers AI model
         const model = workersai("@cf/meta/llama-3.1-8b-instruct");
 
         const cleanedMessages = cleanupMessages(this.messages);
@@ -144,7 +144,8 @@ npm run dev
     if (url.pathname === "/check-open-ai-key") {
       return Response.json({
         success: true,
-        message: "Using Cloudflare Workers AI. No OpenAI API key required. No tools are used."
+        message:
+          "Using Cloudflare Workers AI. No OpenAI API key required. No tools are used."
       });
     }
 
