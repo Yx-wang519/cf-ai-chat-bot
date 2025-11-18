@@ -16,7 +16,6 @@ import { cleanupMessages } from "./utils";
 
 /**
  * Pure chat AI Agent using Cloudflare Workers AI (Llama 3.1 8B Instruct).
- * No tools, no calendar – just a friendly chatbot.
  */
 export class Chat extends AIChatAgent<Env> {
   async onChatMessage(
@@ -48,7 +47,6 @@ Always respond in natural language only.
 `,
           messages: convertToModelMessages(cleanedMessages),
           model,
-          // ❌ no tools
           onFinish: onFinish as unknown as StreamTextOnFinishCallback<{}>,
           stopWhen: stepCountIs(10)
         });
