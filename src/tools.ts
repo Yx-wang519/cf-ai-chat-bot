@@ -33,4 +33,3 @@ export const tools = {
   getWeatherInformation,
   getLocalTime
 } satisfies ToolSet;
-
