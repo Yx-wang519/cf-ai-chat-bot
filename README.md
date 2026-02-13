@@ -29,7 +29,7 @@ However, the LLM backend has been fully replaced from OpenAI → Llama on Worker
 
 ## Run it
 
-This chat bot has been deployed to Cloudflare Workers, try it now! 
+This chat bot has been deployed to Cloudflare Workers, try it now!
 
 Click->
 [`Worker AI chat bot`](https://cf-ai-smart-calendar-bot.wangyx1113.workers.dev)
