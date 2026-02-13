@@ -22,39 +22,17 @@ However, the LLM backend has been fully replaced from OpenAI → Llama on Worker
 - 🔄 State management and chat history
 - 🎨 Modern, responsive UI
 
-## Try it
+## Working Screenshots
 
-This chat bot has been deployed to Cloudflare Workers, try it now! Click->
-[`Worker AI chat bot`](https://cf-ai-smart-calendar-bot.wangyx1113.workers.dev)
 ![Chatbot Screenshot](./Chat1.png)
 ![Chatbot Screenshot](./Chat2.png)
 
-## Run it locally
+## Run it
 
-1. clone:
+This chat bot has been deployed to Cloudflare Workers, try it now! 
 
-```bash
-git clone https://github.com/Yx-wang519/cf-ai-chat-bot.git
-cd cf-ai-chat-bot
-```
-
-2. Install dependencies:
-
-```bash
-npm install
-```
-
-3. Run locally:
-
-```bash
-npm start
-```
-
-4. Deploy:
-
-```bash
-npm run deploy
-```
+Click->
+[`Worker AI chat bot`](https://cf-ai-smart-calendar-bot.wangyx1113.workers.dev)
 
 ## Project Structure
 
